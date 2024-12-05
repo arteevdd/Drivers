@@ -1,6 +1,0 @@
-ERROR - "e:\portio\code_2\sys" file time is slightly in the future (0x1db476b2ff759b2 (12/5/2024 23:12:42) vs. 0x1db476b22095eb8 (12/5/2024 23:12:19)).
-
-ERROR - "e:\portio\code_2\sys\objchk_wxp_x86\i386\_objects.mac" file time is slightly in the future (0x1db476b2fff1bde (12/5/2024 23:12:42) vs. 0x1db476b2234eb90 (12/5/2024 23:12:19)).
-
-ERROR - "e:\portio\code_2\sys\objchk_wxp_x86\i386\_objects.mac" file time is slightly in the future (0x1db476b2fff1bde (12/5/2024 23:12:42) vs. 0x1db476b22373658 (12/5/2024 23:12:19)).
-
