@@ -1,3 +1,5 @@
+Развёртывание на WindowsXP: [здесь](https://github.com/arteevdd/Drivers/blob/master/DEPLOYMENT.md).
+
 ## 1. Метод `IsTransmitterReady`
 
 ### Описание:
