@@ -1,5 +1,7 @@
 ## Развёртывание на WindowsXP: [здесь](https://github.com/arteevdd/Drivers/blob/master/DEPLOYMENT.md).
 
+## Тестовая программа: [здесь](https://github.com/arteevdd/Drivers/blob/master/TEST.md).
+
 ## **Описание содержимого файла `GpIoctl.h`**
 
 Файл `GpIoctl.h` содержит объявления кодов управления устройством (IOCTL), которые используются для взаимодействия с драйвером через вызовы управления устройством.
