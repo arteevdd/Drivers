@@ -1,29 +1,34 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdbool.h>
-
-#define IOCTL_CHECK_TRANSMITTER_READY CTL_CODE(FILE_DEVICE_UNKNOWN, 0x800, METHOD_BUFFERED, FILE_READ_ACCESS)
-#define IOCTL_WRITE_BYTE_TO_PORT CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_WRITE_ACCESS)
+#include "GpIoctl.h"
 
 int main() {
-    HANDLE hDevice = CreateFile(
-        "\\\\.\\SerialPortDriver",
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        NULL,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        NULL
-    );
+    HANDLE hDevice;
 
-    if (hDevice == INVALID_HANDLE_VALUE) {
-        DWORD error = GetLastError();
-        printf("Failed to open device. Error: %lu\n", error);
-        return 1;
+    // Цикл попыток подключения к устройству
+    while (true) {
+        hDevice = CreateFile(
+            "\\\\.\\SerialPortDriver",
+            GENERIC_READ | GENERIC_WRITE,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+        );
+
+        if (hDevice != INVALID_HANDLE_VALUE) {
+            printf("Device opened successfully. Starting transmitter loop...\n");
+            break; // Успешное подключение, выходим из цикла
+        } else {
+            DWORD error = GetLastError();
+            printf("Failed to open device. Error: %lu. Retrying...\n", error);
+            Sleep(1000); // Ждём 1 секунду перед повторной попыткой
+        }
     }
 
-    printf("Device opened successfully. Starting transmitter loop...\n");
-
+    // Основной цикл работы с устройством
     while (true) {
         BOOL isReady = FALSE;
         DWORD bytesReturned;
