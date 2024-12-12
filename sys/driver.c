@@ -1,7 +1,7 @@
 #include <ntddk.h>
 #include "GpIoctl.h"
 
-#define COM1_PORT_BASE_ADDRESS 0x2F8
+#define COM2_PORT_BASE_ADDRESS 0x2F8
 
 typedef struct _DEVICE_EXTENSION {
     BOOLEAN TransmitterReady;
@@ -23,7 +23,7 @@ NTSTATUS DeviceIoControlHandler(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
     switch (ioStack->Parameters.DeviceIoControl.IoControlCode) {
         case IOCTL_CHECK_TRANSMITTER_READY:
             DbgPrint("IOCTL_CHECK_TRANSMITTER_READY received.\n");
-            deviceExtension->TransmitterReady = IsTransmitterReady(COM1_PORT_BASE_ADDRESS);
+            deviceExtension->TransmitterReady = IsTransmitterReady(COM2_PORT_BASE_ADDRESS);
             bytesReturned = sizeof(deviceExtension->TransmitterReady);
             RtlCopyMemory(Irp->AssociatedIrp.SystemBuffer, &deviceExtension->TransmitterReady, bytesReturned);
             break;
@@ -32,9 +32,9 @@ NTSTATUS DeviceIoControlHandler(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp) {
             DbgPrint("IOCTL_WRITE_BYTE_TO_PORT received.\n");
             buffer = (PCHAR)Irp->AssociatedIrp.SystemBuffer;
 
-            if (IsTransmitterReady(COM1_PORT_BASE_ADDRESS)) {
+            if (IsTransmitterReady(COM2_PORT_BASE_ADDRESS)) {
                 DbgPrint("Writing byte '%c' (0x%x) to port.\n", *buffer, *buffer);
-                WRITE_PORT_UCHAR((PUCHAR)COM1_PORT_BASE_ADDRESS, *buffer);
+                WRITE_PORT_UCHAR((PUCHAR)COM2_PORT_BASE_ADDRESS, *buffer);
             } else {
                 DbgPrint("Transmitter not ready.\n");
                 status = STATUS_DEVICE_NOT_READY;
@@ -101,7 +101,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
     }
 
     deviceExtension = (PDEVICE_EXTENSION)deviceObject->DeviceExtension;
-    deviceExtension->TransmitterReady = IsTransmitterReady(COM1_PORT_BASE_ADDRESS);
+    deviceExtension->TransmitterReady = IsTransmitterReady(COM2_PORT_BASE_ADDRESS);
 
     if (!deviceExtension->TransmitterReady) {
         DbgPrint("Transmitter not ready at startup. Failing driver load.\n");
@@ -109,7 +109,7 @@ NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING Registry
         return STATUS_DEVICE_NOT_READY;
     }
 
-    status = ConfigureSerialPort(COM1_PORT_BASE_ADDRESS);
+    status = ConfigureSerialPort(COM2_PORT_BASE_ADDRESS);
     if (!NT_SUCCESS(status)) {
         DbgPrint("Failed to configure serial port: 0x%x\n", status);
         IoDeleteDevice(deviceObject);

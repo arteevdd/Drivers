@@ -6,7 +6,6 @@
 int main() {
     HANDLE hDevice;
 
-    // Цикл попыток подключения к устройству
     while (true) {
         hDevice = CreateFile(
             "\\\\.\\SerialPortDriver",
@@ -20,15 +19,14 @@ int main() {
 
         if (hDevice != INVALID_HANDLE_VALUE) {
             printf("Device opened successfully. Starting transmitter loop...\n");
-            break; // Успешное подключение, выходим из цикла
+            break;
         } else {
             DWORD error = GetLastError();
             printf("Failed to open device. Error: %lu. Retrying...\n", error);
-            Sleep(1000); // Ждём 1 секунду перед повторной попыткой
+            Sleep(1000);
         }
     }
 
-    // Основной цикл работы с устройством
     while (true) {
         BOOL isReady = FALSE;
         DWORD bytesReturned;
@@ -67,8 +65,7 @@ int main() {
             printf("Failed to check transmitter readiness. Error: %lu\n", GetLastError());
         }
 
-        // Задержка перед следующей итерацией
-        Sleep(500); // 500 миллисекунд
+        Sleep(500);
     }
 
     CloseHandle(hDevice);
