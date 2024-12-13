@@ -1,49 +1,73 @@
 #include <windows.h>
 #include <stdio.h>
-
-#define IOCTL_SEND_DATA_TO_PORT CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_WRITE_ACCESS)
+#include <stdbool.h>
+#include "GpIoctl.h"
 
 int main() {
     HANDLE hDevice;
-    DWORD bytesReturned;
-    char buffer[256];
 
+    while (true) {
+        hDevice = CreateFile(
+            "\\\\.\\SerialPortDriver",
+            GENERIC_READ | GENERIC_WRITE,
+            0,
+            NULL,
+            OPEN_EXISTING,
+            FILE_ATTRIBUTE_NORMAL,
+            NULL
+        );
 
-    hDevice = CreateFileW(
-        L"\\\\.\\SerialPortDriver",  
-        GENERIC_READ | GENERIC_WRITE, 
-        0,                           
-        NULL,                         
-        OPEN_EXISTING,                
-        FILE_ATTRIBUTE_NORMAL,        
-        NULL                         
-    );
-
-    if (hDevice == INVALID_HANDLE_VALUE) {
-        printf("Failed to open the device. Error: %lu\n", GetLastError());
-        return 1;
+        if (hDevice != INVALID_HANDLE_VALUE) {
+            printf("Device opened successfully. Starting transmitter loop...\n");
+            break;
+        } else {
+            DWORD error = GetLastError();
+            printf("Failed to open device. Error: %lu. Retrying...\n", error);
+            Sleep(1000);
+        }
     }
 
-    snprintf(buffer, sizeof(buffer), "Hello, Serial Port!\n");
+    while (true) {
+        BOOL isReady = FALSE;
+        DWORD bytesReturned;
 
-    if (!DeviceIoControl(
-        hDevice,                    
-        IOCTL_SEND_DATA_TO_PORT,    
-        buffer,                     
-        strlen(buffer) + 1,         
-        NULL,                       
-        0,                          
-        &bytesReturned,             
-        NULL                        
-    )) {
-        printf("DeviceIoControl failed. Error: %lu\n", GetLastError());
-        CloseHandle(hDevice);
-        return 1;
+        // Опрос готовности передатчика
+        if (DeviceIoControl(
+                hDevice,
+                IOCTL_CHECK_TRANSMITTER_READY,
+                NULL,
+                0,
+                &isReady,
+                sizeof(isReady),
+                &bytesReturned,
+                NULL
+            )) {
+            if (isReady) {
+                CHAR byteToWrite = 'A';
+                if (DeviceIoControl(
+                        hDevice,
+                        IOCTL_WRITE_BYTE_TO_PORT,
+                        &byteToWrite,
+                        sizeof(byteToWrite),
+                        NULL,
+                        0,
+                        &bytesReturned,
+                        NULL
+                    )) {
+                    printf("Byte '%c' written to the port successfully.\n", byteToWrite);
+                } else {
+                    printf("Failed to write byte to the port. Error: %lu\n", GetLastError());
+                }
+            } else {
+                printf("Transmitter is not ready. Waiting...\n");
+            }
+        } else {
+            printf("Failed to check transmitter readiness. Error: %lu\n", GetLastError());
+        }
+
+        Sleep(500);
     }
-
-    printf("Data sent to the driver: %s\n", buffer);
 
     CloseHandle(hDevice);
-
     return 0;
 }
